@@ -1,0 +1,101 @@
+{
+  "name": "ide-eslint full feature matrix",
+  "adapter": "ide-eslint",
+  "project": "fixtures/drive",
+  "file": "fixtures/drive/fixture.js",
+  "grammarScope": "source.js",
+  "config": { "ide-eslint.nodePath": "../../../node_modules" },
+  "checks": [
+    {
+      "name": "diagnostics",
+      "method": "textDocument/diagnostic",
+      "expect": { "path": "items.*.code", "includes": "no-console" }
+    },
+    {
+      "name": "single-fix actions",
+      "method": "textDocument/codeAction",
+      "paramsFrom": {
+        "range": { "check": "diagnostics", "path": "items.0.range" },
+        "context.diagnostics": { "check": "diagnostics", "path": "items" }
+      },
+      "expect": { "path": "*.command.command", "includes": "eslint.applySingleFix" }
+    },
+    {
+      "name": "suggestion actions",
+      "method": "textDocument/codeAction",
+      "paramsFrom": {
+        "range": { "check": "diagnostics", "path": "items.0.range" },
+        "context.diagnostics": { "check": "diagnostics", "path": "items" }
+      },
+      "expect": { "path": "*.command.command", "includes": "eslint.applySuggestion" }
+    },
+    {
+      "name": "same-fix actions",
+      "method": "textDocument/codeAction",
+      "paramsFrom": {
+        "range": { "check": "diagnostics", "path": "items.0.range" },
+        "context.diagnostics": { "check": "diagnostics", "path": "items" }
+      },
+      "expect": { "path": "*.command.command", "includes": "eslint.applySameFixes" }
+    },
+    {
+      "name": "disable-line actions",
+      "method": "textDocument/codeAction",
+      "paramsFrom": {
+        "range": { "check": "diagnostics", "path": "items.0.range" },
+        "context.diagnostics": { "check": "diagnostics", "path": "items" }
+      },
+      "expect": { "path": "*.command.command", "includes": "eslint.applyDisableLine" }
+    },
+    {
+      "name": "disable-file actions",
+      "method": "textDocument/codeAction",
+      "paramsFrom": {
+        "range": { "check": "diagnostics", "path": "items.0.range" },
+        "context.diagnostics": { "check": "diagnostics", "path": "items" }
+      },
+      "expect": { "path": "*.command.command", "includes": "eslint.applyDisableFile" }
+    },
+    {
+      "name": "rule-documentation actions",
+      "method": "textDocument/codeAction",
+      "paramsFrom": {
+        "range": { "check": "diagnostics", "path": "items.0.range" },
+        "context.diagnostics": { "check": "diagnostics", "path": "items" }
+      },
+      "expect": { "path": "*.command.command", "includes": "eslint.openRuleDoc" }
+    },
+    {
+      "name": "all-fixes action",
+      "method": "textDocument/codeAction",
+      "paramsFrom": {
+        "range": { "check": "diagnostics", "path": "items.0.range" },
+        "context.diagnostics": { "check": "diagnostics", "path": "items" }
+      },
+      "expect": { "path": "*.command.command", "includes": "eslint.applyAllFixes" }
+    },
+    {
+      "name": "source fix-all",
+      "method": "textDocument/codeAction",
+      "params": {
+        "range": {
+          "start": { "line": 0, "character": 0 },
+          "end": { "line": 0, "character": 0 }
+        },
+        "context": { "diagnostics": [], "only": ["source.fixAll.eslint"] }
+      },
+      "expect": { "path": "*.kind", "includes": "source.fixAll.eslint" }
+    },
+    {
+      "name": "formatting",
+      "method": "textDocument/formatting",
+      "params": { "options": { "tabSize": 2, "insertSpaces": true } },
+      "expect": { "type": "array", "minLength": 1 }
+    },
+    {
+      "name": "restart lifecycle",
+      "kind": "restart",
+      "expect": { "path": "current", "equals": "running" }
+    }
+  ]
+}
