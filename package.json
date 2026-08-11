@@ -1,0 +1,255 @@
+{
+  "name": "ide-eslint",
+  "author": "lumine-code",
+  "description": "ESLint language-server adapter for JavaScript and TypeScript.",
+  "repository": "https://github.com/lumine-code/ide-eslint",
+  "bugs": {
+    "url": "https://github.com/lumine-code/ide-eslint/issues"
+  },
+  "keywords": [
+    "language-server",
+    "lsp",
+    "eslint",
+    "javascript",
+    "typescript",
+    "linting",
+    "formatting"
+  ],
+  "version": "1.0.0",
+  "license": "MIT",
+  "engines": {
+    "lumine": "^1.0.0"
+  },
+  "main": "./lib/main",
+  "files": [
+    "lib",
+    "spec"
+  ],
+  "scripts": {
+    "test": "lumine --test spec",
+    "lint": "eslint . --max-warnings 0",
+    "format": "prettier --write .",
+    "format:check": "prettier --check ."
+  },
+  "consumedServices": {
+    "ide-client": {
+      "versions": {
+        "^1.0.0": "consumeIdeClient"
+      }
+    }
+  },
+  "dependencies": {
+    "vscode-langservers-extracted": "4.10.0"
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "eslint": "^10.8.0",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-n": "^18.2.2",
+    "globals": "^17.9.0",
+    "prettier": "^3.9.6",
+    "vscode-jsonrpc": "^9.0.1"
+  },
+  "configSchema": {
+    "serverPath": {
+      "title": "Server Path",
+      "description": "Absolute path to a `vscode-eslint-language-server` executable. Leave empty to use the bundled server.",
+      "type": "string",
+      "default": ""
+    },
+    "features": {
+      "title": "Features",
+      "description": "Which parts of the ESLint server the editor uses.",
+      "type": "object",
+      "properties": {
+        "diagnostics": {
+          "title": "Diagnostics",
+          "description": "Report ESLint problems in the linter.",
+          "type": "boolean",
+          "default": true
+        },
+        "format": {
+          "title": "Format",
+          "description": "Use ESLint auto-fixes when formatting a file.",
+          "type": "boolean",
+          "default": true
+        },
+        "codeActions": {
+          "title": "Code Actions",
+          "description": "Offer fixes, disable comments and rule documentation actions.",
+          "type": "boolean",
+          "default": true
+        }
+      }
+    },
+    "packageManager": {
+      "title": "Package Manager",
+      "description": "Package manager used to locate a globally installed ESLint when the project has none.",
+      "type": "string",
+      "enum": [
+        "npm",
+        "yarn",
+        "pnpm"
+      ],
+      "default": "npm"
+    },
+    "nodePath": {
+      "title": "Node Module Path",
+      "description": "Optional directory from which to resolve ESLint. Relative paths are resolved from the project root.",
+      "type": "string",
+      "default": ""
+    },
+    "useFlatConfig": {
+      "title": "Use Flat Config",
+      "description": "Load eslint.config.js/mjs/cjs instead of legacy eslintrc configuration.",
+      "type": "boolean",
+      "default": true
+    },
+    "run": {
+      "title": "Validation Timing",
+      "description": "Validate while typing or only after a file is saved.",
+      "type": "string",
+      "enum": [
+        "onType",
+        "onSave"
+      ],
+      "default": "onType"
+    },
+    "workingDirectory": {
+      "title": "Working Directory",
+      "description": "How the server finds the directory used for ESLint configuration and plugins.",
+      "type": "string",
+      "enum": [
+        "location",
+        "auto"
+      ],
+      "default": "location"
+    },
+    "onIgnoredFiles": {
+      "title": "Ignored Files",
+      "description": "Whether ESLint reports that an open file is ignored.",
+      "type": "string",
+      "enum": [
+        "off",
+        "warn"
+      ],
+      "default": "off"
+    },
+    "quiet": {
+      "title": "Quiet",
+      "description": "Report errors while suppressing warnings.",
+      "type": "boolean",
+      "default": false
+    },
+    "options": {
+      "title": "ESLint Options",
+      "description": "Additional options passed to the ESLint class.",
+      "type": "object",
+      "default": {}
+    },
+    "rulesCustomizations": {
+      "title": "Rule Customizations",
+      "description": "Override severities or fixability for matching rule names.",
+      "type": "array",
+      "default": [],
+      "items": {
+        "type": "object",
+        "properties": {
+          "rule": {
+            "title": "Rule Pattern",
+            "type": "string",
+            "default": "*"
+          },
+          "severity": {
+            "title": "Severity",
+            "type": "string",
+            "enum": [
+              "default",
+              "off",
+              "info",
+              "warn",
+              "error",
+              "downgrade",
+              "upgrade"
+            ],
+            "default": "default"
+          },
+          "fixability": {
+            "title": "Fixability",
+            "description": "Apply to every matching rule, only fixable rules, or only unfixable rules.",
+            "type": "string",
+            "enum": [
+              "any",
+              "fixable",
+              "unfixable"
+            ],
+            "default": "any"
+          }
+        }
+      }
+    },
+    "problems": {
+      "title": "Problems",
+      "type": "object",
+      "properties": {
+        "shortenToSingleLine": {
+          "title": "Shorten to One Line",
+          "description": "Keep every reported diagnostic range on one line.",
+          "type": "boolean",
+          "default": false
+        }
+      }
+    },
+    "codeAction": {
+      "title": "Code Actions",
+      "type": "object",
+      "properties": {
+        "disableRuleComment": {
+          "title": "Disable Rule Comments",
+          "type": "boolean",
+          "default": true
+        },
+        "disableRuleCommentLocation": {
+          "title": "Disable Comment Location",
+          "type": "string",
+          "enum": [
+            "separateLine",
+            "sameLine"
+          ],
+          "default": "separateLine"
+        },
+        "showDocumentation": {
+          "title": "Rule Documentation",
+          "description": "Offer an action that opens the documentation for a reported rule.",
+          "type": "boolean",
+          "default": true
+        }
+      }
+    },
+    "codeActionOnSave": {
+      "title": "Fix All on Save",
+      "type": "object",
+      "properties": {
+        "mode": {
+          "title": "Mode",
+          "description": "Fix all problems or only problems already reported by the current validation pass.",
+          "type": "string",
+          "enum": [
+            "all",
+            "problems"
+          ],
+          "default": "all"
+        },
+        "rules": {
+          "title": "Rules",
+          "description": "Optional rule patterns included in fix-all operations.",
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "default": []
+        }
+      }
+    }
+  }
+}
