@@ -7,6 +7,7 @@ Registers the ESLint server from [vscode-langservers-extracted](https://github.c
 ## Features
 
 - **Bundled language server**: ships an exact server version, with an optional custom executable path.
+- **Managed upgrade**: installs a newer server from npm when you want one, and removing it returns to the bundled copy.
 - **Project ESLint**: resolves the ESLint version and plugins installed by each project, with optional global package-manager and node-module paths.
 - **Modern and legacy configuration**: supports flat config and lets older projects opt back into eslintrc loading.
 - **Complete fix workflow**: supplies single-rule, same-rule, fix-all, disable-line, disable-file, and documentation actions.
