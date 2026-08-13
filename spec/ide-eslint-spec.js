@@ -194,10 +194,10 @@ describe("ide-eslint protocol extensions", () => {
 
   it("handles missing setup and failed probes without rejecting the server", async () => {
     const session = {};
-    spyOn(lumine.notifications, "addWarning");
+    spyOn(lumine.notifications, "addHint");
     const missingConfig = (uri) => ({ message: "No configuration found", document: { uri } });
     // The server asks once per document; the remedy is the same for all of
-    // them, so each condition is warned about once for the whole session.
+    // them, so each condition is hinted at once for the whole session.
     await adapter.handleServerRequest("eslint/noConfig", missingConfig("file:///a.js"), {
       session,
     });
@@ -214,25 +214,28 @@ describe("ide-eslint protocol extensions", () => {
         { session },
       ),
     ).toBeNull();
-    expect(lumine.notifications.addWarning.calls.count()).toBe(2);
-    // A restarted server is a new session, and warns again.
+    // Neither condition is a failure, so both arrive as autohiding hints
+    // rather than as a dismissable box per file.
+    expect(lumine.notifications.addHint.calls.count()).toBe(2);
+    expect(lumine.notifications.addHint.calls.first().args[1].dismissable).toBeUndefined();
+    // A restarted server is a new session, and hints again.
     await adapter.handleServerRequest(
       "eslint/noLibrary",
       { source: { uri: "file:///a.js" } },
       { session: {} },
     );
-    expect(lumine.notifications.addWarning.calls.count()).toBe(3);
+    expect(lumine.notifications.addHint.calls.count()).toBe(3);
   });
 
   it("surfaces output and intercepted exits while accepting status notifications", () => {
-    spyOn(lumine.notifications, "addWarning");
+    spyOn(lumine.notifications, "addHint");
     spyOn(lumine.notifications, "addError");
     const session = {};
     adapter.handleServerNotification("eslint/status", { state: 1 }, { session });
     adapter.handleServerNotification("eslint/showOutputChannel", undefined, { session });
     adapter.handleServerNotification("eslint/showOutputChannel", undefined, { session });
     adapter.handleServerNotification("eslint/exitCalled", [2, "plugin stack"], { session });
-    expect(lumine.notifications.addWarning.calls.count()).toBe(1);
+    expect(lumine.notifications.addHint.calls.count()).toBe(1);
     const [title, options] = lumine.notifications.addError.calls.mostRecent().args;
     expect(title).toBe("An ESLint plugin tried to stop the language server");
     expect(options.detail).toMatch(/2[\s\S]*plugin stack/);
