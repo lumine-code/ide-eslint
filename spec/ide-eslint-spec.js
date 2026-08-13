@@ -195,17 +195,18 @@ describe("ide-eslint protocol extensions", () => {
   it("handles missing setup and failed probes without rejecting the server", async () => {
     const session = {};
     spyOn(lumine.notifications, "addWarning");
-    const missingConfig = {
-      message: "No configuration found",
-      document: { uri: "file:///fixture.js" },
-    };
-    await adapter.handleServerRequest("eslint/noConfig", missingConfig, { session });
-    await adapter.handleServerRequest("eslint/noConfig", missingConfig, { session });
-    await adapter.handleServerRequest(
-      "eslint/noLibrary",
-      { source: { uri: "file:///fixture.js" } },
-      { session },
-    );
+    const missingConfig = (uri) => ({ message: "No configuration found", document: { uri } });
+    // The server asks once per document; the remedy is the same for all of
+    // them, so each condition is warned about once for the whole session.
+    await adapter.handleServerRequest("eslint/noConfig", missingConfig("file:///a.js"), {
+      session,
+    });
+    await adapter.handleServerRequest("eslint/noConfig", missingConfig("file:///b.js"), {
+      session,
+    });
+    for (const uri of ["file:///a.js", "file:///b.js", "file:///c.js"]) {
+      await adapter.handleServerRequest("eslint/noLibrary", { source: { uri } }, { session });
+    }
     expect(
       await adapter.handleServerRequest(
         "eslint/probeFailed",
@@ -214,6 +215,13 @@ describe("ide-eslint protocol extensions", () => {
       ),
     ).toBeNull();
     expect(lumine.notifications.addWarning.calls.count()).toBe(2);
+    // A restarted server is a new session, and warns again.
+    await adapter.handleServerRequest(
+      "eslint/noLibrary",
+      { source: { uri: "file:///a.js" } },
+      { session: {} },
+    );
+    expect(lumine.notifications.addWarning.calls.count()).toBe(3);
   });
 
   it("surfaces output and intercepted exits while accepting status notifications", () => {
