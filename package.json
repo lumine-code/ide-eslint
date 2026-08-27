@@ -60,23 +60,27 @@
     "features": {
       "title": "Features",
       "description": "Which parts of the ESLint server the editor uses.",
+      "scopeResolution": "grammar",
       "type": "object",
       "properties": {
         "diagnostics": {
           "title": "Diagnostics",
           "description": "Report ESLint problems in the linter.",
+          "scopeResolution": "grammar",
           "type": "boolean",
           "default": true
         },
         "format": {
           "title": "Format",
           "description": "Use ESLint auto-fixes when formatting a file.",
+          "scopeResolution": "grammar",
           "type": "boolean",
           "default": true
         },
         "codeActions": {
           "title": "Code Actions",
           "description": "Offer fixes, disable comments and rule documentation actions.",
+          "scopeResolution": "grammar",
           "type": "boolean",
           "default": true
         }
