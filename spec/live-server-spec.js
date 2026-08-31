@@ -236,4 +236,15 @@ describe("ide-eslint bundled server", () => {
     });
     expect(disabled.items).toEqual([]);
   });
+
+  it("shuts down cleanly without reporting the server's own intercepted exits", async () => {
+    spyOn(lumine.notifications, "addError");
+    await client.start();
+    const child = client.child;
+
+    await client.stop();
+
+    expect(child.exitCode).toBe(0);
+    expect(lumine.notifications.addError).not.toHaveBeenCalled();
+  });
 });

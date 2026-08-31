@@ -84,9 +84,12 @@ class LiveLspClient {
     this.registrations = [];
     this.appliedEdits = [];
     this.stderr = "";
+    this.state = "stopped";
+    this.stopPromise = null;
   }
 
   async start() {
+    this.state = "starting";
     const launch = await this.adapter.resolveServer({ rootPath: this.rootPath });
     this.child = childProcess.spawn(launch.command, launch.args || [], {
       cwd: launch.cwd || this.rootPath,
@@ -163,6 +166,7 @@ class LiveLspClient {
       (await this.adapter.getWorkspaceConfiguration?.(undefined)) ??
       {};
     this.connection.sendNotification("workspace/didChangeConfiguration", { settings });
+    this.state = "running";
     return this.initializeResult;
   }
 
@@ -209,26 +213,33 @@ class LiveLspClient {
     throw new Error(`${label} timed out; stderr: ${this.stderr}`);
   }
 
-  async stop() {
-    if (!this.connection) return;
-    try {
-      await withTimeout(this.connection.sendRequest("shutdown"), "shutdown", 2000);
-      this.connection.sendNotification("exit");
-    } catch {
-      this.child?.kill();
-    }
-    if (this.child.exitCode === null) {
-      await Promise.race([
-        new Promise((resolve) => this.child.once("exit", resolve)),
-        new Promise((resolve) =>
-          setTimeout(() => {
-            this.child.kill();
-            resolve();
-          }, 1000),
-        ),
-      ]);
-    }
-    this.connection.dispose();
+  stop() {
+    if (this.stopPromise) return this.stopPromise;
+    if (!this.connection || this.state === "stopped") return Promise.resolve();
+    this.state = "stopping";
+    this.stopPromise = (async () => {
+      try {
+        await withTimeout(this.connection.sendRequest("shutdown"), "shutdown", 2000);
+        this.connection.sendNotification("exit");
+      } catch {
+        this.child?.kill();
+      }
+      if (this.child.exitCode === null) {
+        await Promise.race([
+          new Promise((resolve) => this.child.once("exit", resolve)),
+          new Promise((resolve) =>
+            setTimeout(() => {
+              this.child.kill();
+              resolve();
+            }, 1500),
+          ),
+        ]);
+      }
+      this.connection.dispose();
+      this.connection = null;
+      this.state = "stopped";
+    })();
+    return this.stopPromise;
   }
 }
 

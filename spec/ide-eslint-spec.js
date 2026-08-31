@@ -151,21 +151,8 @@ describe("ide-eslint adapter", () => {
     ]);
   });
 
-  it("restarts only when the executable changes", async () => {
-    const restart = jasmine.createSpy("restart").and.returnValue(Promise.resolve());
-    const session = { adapter, state: "running" };
-    disposable.dispose();
-    ({ adapter, disposable } = registerAdapter({
-      getSessions: () => [session],
-      restart,
-    }));
-    session.adapter = adapter;
-
-    lumine.config.set("ide-eslint.run", "onSave");
-    expect(restart).not.toHaveBeenCalled();
-    lumine.config.set("ide-eslint.serverPath", process.execPath);
-    await Promise.resolve();
-    expect(restart).toHaveBeenCalledOnceWith(session);
+  it("declares only the executable setting as restart-required", () => {
+    expect(adapter.restartKeyPaths).toEqual(["ide-eslint.serverPath"]);
   });
 });
 
@@ -227,18 +214,48 @@ describe("ide-eslint protocol extensions", () => {
     expect(lumine.notifications.addHint.calls.count()).toBe(3);
   });
 
-  it("surfaces output and intercepted exits while accepting status notifications", () => {
+  it("surfaces output once while accepting status notifications", () => {
     spyOn(lumine.notifications, "addHint");
-    spyOn(lumine.notifications, "addError");
     const session = {};
     adapter.handleServerNotification("eslint/status", { state: 1 }, { session });
     adapter.handleServerNotification("eslint/showOutputChannel", undefined, { session });
     adapter.handleServerNotification("eslint/showOutputChannel", undefined, { session });
-    adapter.handleServerNotification("eslint/exitCalled", [2, "plugin stack"], { session });
     expect(lumine.notifications.addHint.calls.count()).toBe(1);
+  });
+
+  it("reports an intercepted exit once per live session and unwraps both payload shapes", () => {
+    spyOn(lumine.notifications, "addError");
+    const running = { state: "running" };
+    adapter.handleServerNotification("eslint/exitCalled", [[0, "Error: stack"]], {
+      session: running,
+    });
+    adapter.handleServerNotification("eslint/exitCalled", [[0, "duplicate stack"]], {
+      session: running,
+    });
+
+    expect(lumine.notifications.addError.calls.count()).toBe(1);
     const [title, options] = lumine.notifications.addError.calls.mostRecent().args;
-    expect(title).toBe("An ESLint plugin tried to stop the language server");
-    expect(options.detail).toMatch(/2[\s\S]*plugin stack/);
+    expect(title).toBe("ESLint Language Server is stopping unexpectedly");
+    expect(options.detail).toBe("Exit code: 0\n\nError: stack");
+    expect(options.dismissable).toBe(true);
+
+    adapter.handleServerNotification("eslint/exitCalled", [2, "plugin stack"], {
+      session: { state: "starting" },
+    });
+    expect(lumine.notifications.addError.calls.count()).toBe(2);
+    expect(lumine.notifications.addError.calls.mostRecent().args[1].detail).toBe(
+      "Exit code: 2\n\nplugin stack",
+    );
+  });
+
+  it("ignores the server's own intercepted exits during orderly shutdown", () => {
+    spyOn(lumine.notifications, "addError");
+    for (const state of ["stopping", "stopped"]) {
+      adapter.handleServerNotification("eslint/exitCalled", [[0, "framework stack"]], {
+        session: { state },
+      });
+    }
+    expect(lumine.notifications.addError).not.toHaveBeenCalled();
   });
 });
 
