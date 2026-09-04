@@ -2,7 +2,7 @@
 
 ESLint language-server adapter for JavaScript and TypeScript.
 
-Registers the ESLint server from [vscode-langservers-extracted](https://github.com/hrsh7th/vscode-langservers-extracted) with the bundled `ide-client` package. It provides pull diagnostics, quick fixes, disable comments, rule-documentation links, fix-all commands, and ESLint-powered formatting.
+Registers the ESLint server from [vscode-langservers-extracted](https://github.com/hrsh7th/vscode-langservers-extracted) with the `ide-client` package. It provides pull diagnostics, quick fixes, disable comments, rule-documentation links, fix-all commands, and ESLint-powered formatting.
 
 ## Features
 
@@ -29,7 +29,7 @@ If ESLint is installed elsewhere, set **Node Module Path** or select the global 
 
 ## Installation
 
-To install `ide-eslint` search for it in the Install pane of the Lumine settings, or run the command `lumine --install lumine-code/ide-eslint`.
+Install `ide-client` first. Then install `ide-eslint` from the Install pane of the Lumine settings, or run `lumine --install lumine-code/ide-eslint`.
 
 ## Services
 

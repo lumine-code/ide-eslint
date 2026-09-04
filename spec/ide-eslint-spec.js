@@ -80,6 +80,9 @@ describe("ide-eslint adapter", () => {
       "source.tsx",
     ]);
     expect(adapter.languageIdForScope("source.js")).toBe("javascript");
+    expect(
+      adapter.languageIdForScope("source.js", { filePath: path.join(__dirname, "view.jsx") }),
+    ).toBe("javascriptreact");
     expect(adapter.languageIdForScope("source.es6")).toBe("javascript");
     expect(adapter.languageIdForScope("source.jsx")).toBe("javascriptreact");
     expect(adapter.languageIdForScope("source.babel")).toBe("javascriptreact");
@@ -135,15 +138,17 @@ describe("ide-eslint adapter", () => {
     expect(settings.problems).toEqual({ shortenToSingleLine: false });
   });
 
-  it("turns protocol work off through the three advertised feature switches", () => {
+  it("maps feature switches onto document-scoped server settings", () => {
     lumine.config.set("ide-eslint.features.diagnostics", false);
     lumine.config.set("ide-eslint.features.format", false);
     lumine.config.set("ide-eslint.features.codeActions", false);
-    const settings = adapter.getSettings();
+    const uri = pathToFileURL(path.join(__dirname, "fixture.js")).href;
+    const settings = adapter.getWorkspaceConfiguration("", uri);
     expect(settings.validate).toBe("off");
     expect(settings.format).toBe(false);
     expect(settings.codeAction.disableRuleComment.enable).toBe(false);
     expect(settings.codeAction.showDocumentation.enable).toBe(false);
+    expect(adapter.getSettings().validate).toBe("on");
     expect(Object.keys(require("../package.json").configSchema.features.properties)).toEqual([
       "diagnostics",
       "format",
@@ -151,8 +156,34 @@ describe("ide-eslint adapter", () => {
     ]);
   });
 
+  it("preserves grammar-scoped feature overrides", () => {
+    const jsUri = pathToFileURL(path.join(__dirname, "fixture.js")).href;
+    const tsUri = pathToFileURL(path.join(__dirname, "fixture.ts")).href;
+    lumine.config.set("ide-eslint.features.diagnostics", false);
+    lumine.config.set("ide-eslint.features.diagnostics", true, {
+      scopeSelector: ".source.ts",
+    });
+    expect(adapter.getWorkspaceConfiguration("", jsUri).validate).toBe("off");
+    expect(adapter.getWorkspaceConfiguration("", tsUri).validate).toBe("on");
+    // The unscoped startup payload must not globally turn the server off.
+    expect(adapter.getSettings().validate).toBe("on");
+  });
+
   it("declares only the executable setting as restart-required", () => {
     expect(adapter.restartKeyPaths).toEqual(["ide-eslint.serverPath"]);
+  });
+
+  it("describes every titled configuration setting", () => {
+    const pkg = require("../package.json");
+    const missing = [];
+    const visit = (value, keyPath = "") => {
+      if (value?.title && !value.description) missing.push(keyPath);
+      for (const [key, child] of Object.entries(value?.properties || {}))
+        visit(child, keyPath ? `${keyPath}.${key}` : key);
+    };
+    visit({ properties: pkg.configSchema });
+    expect(missing).toEqual([]);
+    expect(pkg.keywords.some((keyword) => pkg.name.includes(keyword))).toBe(false);
   });
 });
 

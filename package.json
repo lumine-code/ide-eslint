@@ -9,7 +9,7 @@
   "keywords": [
     "language-server",
     "lsp",
-    "eslint",
+    "static-analysis",
     "javascript",
     "typescript",
     "linting",
@@ -194,6 +194,7 @@
     },
     "problems": {
       "title": "Problems",
+      "description": "How ESLint problems are represented in editor diagnostics.",
       "type": "object",
       "properties": {
         "shortenToSingleLine": {
@@ -206,15 +207,18 @@
     },
     "codeAction": {
       "title": "Code Actions",
+      "description": "Which interactive actions ESLint offers for reported rules.",
       "type": "object",
       "properties": {
         "disableRuleComment": {
           "title": "Disable Rule Comments",
+          "description": "Offer actions that add comments disabling a reported rule.",
           "type": "boolean",
           "default": true
         },
         "disableRuleCommentLocation": {
           "title": "Disable Comment Location",
+          "description": "Place a rule-disable comment on the same line or on a separate line.",
           "type": "string",
           "enum": [
             "separateLine",
@@ -232,6 +236,7 @@
     },
     "codeActionOnSave": {
       "title": "Fix All on Save",
+      "description": "How ESLint selects fixes when applying its source fix-all action.",
       "type": "object",
       "properties": {
         "mode": {

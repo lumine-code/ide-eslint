@@ -198,17 +198,19 @@ describe("ide-eslint bundled server", () => {
 
   it("validates every advertised language mode and applies live configuration changes", async () => {
     const fixtures = [
-      ["fixture.js", "javascript"],
-      ["fixture.jsx", "javascriptreact"],
-      ["fixture.ts", "typescript"],
-      ["fixture.tsx", "typescriptreact"],
+      ["fixture.js", "source.js", "javascript"],
+      ["fixture.jsx", "source.js", "javascriptreact"],
+      ["fixture.ts", "source.ts", "typescript"],
+      ["fixture.tsx", "source.tsx", "typescriptreact"],
     ];
     await client.start();
-    for (const [name, languageId] of fixtures) {
+    for (const [name, scope, expectedLanguageId] of fixtures) {
       const filePath = path.join(rootPath, name);
       const source = "const value = 1\n";
       fs.writeFileSync(filePath, source);
       const uri = fileUri(filePath);
+      const languageId = adapter.languageIdForScope(scope, { filePath });
+      expect(languageId).toBe(expectedLanguageId);
       client.open(uri, languageId, source);
       const report = await client.request("textDocument/diagnostic", {
         textDocument: { uri },
