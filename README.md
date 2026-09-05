@@ -29,7 +29,9 @@ If ESLint is installed elsewhere, set **Node Module Path** or select the global 
 
 ## Installation
 
-Install `ide-client` first. Then install `ide-eslint` from the Install pane of the Lumine settings, or run `lumine --install lumine-code/ide-eslint`.
+To install `ide-eslint` search for it in the Install pane of the Lumine settings, or run the command `lumine --install lumine-code/ide-eslint`.
+
+Install `ide-client` first.
 
 ## Services
 
