@@ -210,6 +210,42 @@ describe("ide-eslint protocol extensions", () => {
     expect(lumine.shell.openExternal).toHaveBeenCalledOnceWith(url);
   });
 
+  it("rejects unsupported rule-documentation protocols", async () => {
+    spyOn(lumine.shell, "openExternal").and.resolveTo();
+    spyOn(lumine.notifications, "addWarning");
+
+    expect(
+      await adapter.handleServerRequest(
+        "eslint/openDoc",
+        { url: "javascript:alert(1)" },
+        { session: {} },
+      ),
+    ).toBeNull();
+    expect(lumine.shell.openExternal).not.toHaveBeenCalled();
+    expect(lumine.notifications.addWarning).toHaveBeenCalledWith(
+      "ESLint Language Server returned an unsupported documentation URL.",
+      { dismissable: true },
+    );
+  });
+
+  it("reports a failure to open rule documentation", async () => {
+    const error = new Error("no browser");
+    spyOn(lumine.shell, "openExternal").and.rejectWith(error);
+    spyOn(lumine.notifications, "addWarning");
+
+    expect(
+      await adapter.handleServerRequest(
+        "eslint/openDoc",
+        { url: "https://eslint.org/docs/latest/rules/semi" },
+        { session: {} },
+      ),
+    ).toBeNull();
+    expect(lumine.notifications.addWarning).toHaveBeenCalledWith(
+      "Unable to open the ESLint documentation.",
+      { detail: error.message, dismissable: true },
+    );
+  });
+
   it("handles missing setup and failed probes without rejecting the server", async () => {
     const session = {};
     spyOn(lumine.notifications, "addHint");
