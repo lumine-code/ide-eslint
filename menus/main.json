@@ -1,0 +1,16 @@
+{
+  "menu": [
+    {
+      "label": "Packages",
+      "submenu": [
+        {
+          "label": "IDE ESLint",
+          "submenu": [
+            { "label": "Lint Projects", "command": "ide-eslint:lint-projects" },
+            { "label": "Lint Selected", "command": "ide-eslint:lint-selected" }
+          ]
+        }
+      ]
+    }
+  ]
+}

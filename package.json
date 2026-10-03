@@ -23,6 +23,7 @@
   "main": "./lib/main",
   "files": [
     "lib",
+    "menus",
     "spec"
   ],
   "scripts": {
@@ -36,10 +37,28 @@
       "versions": {
         "^1.0.0": "consumeIdeClient"
       }
+    },
+    "linter.registry": {
+      "versions": {
+        "^1.0.0": "consumeLinterRegistry"
+      }
+    },
+    "busy-signal": {
+      "versions": {
+        "^1.0.0": "consumeBusySignal"
+      }
+    },
+    "tree-view.selection": {
+      "versions": {
+        "^1.0.0": "consumeTreeViewSelection"
+      }
     }
   },
   "dependencies": {
-    "vscode-langservers-extracted": "4.10.0"
+    "vscode-langservers-extracted": "4.10.0",
+    "eslint8": "npm:eslint@^8.57.1",
+    "eslint10": "npm:eslint@^10.11.0",
+    "picomatch": "^4.0.7"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
@@ -102,12 +121,6 @@
       "description": "Optional directory from which to resolve ESLint. Relative paths are resolved from the project root.",
       "type": "string",
       "default": ""
-    },
-    "useFlatConfig": {
-      "title": "Use Flat Config",
-      "description": "Load eslint.config.js/mjs/cjs instead of legacy eslintrc configuration.",
-      "type": "boolean",
-      "default": true
     },
     "run": {
       "title": "Validation Timing",
@@ -258,6 +271,30 @@
           },
           "default": []
         }
+      }
+    },
+    "configurationMode": {
+      "default": "auto",
+      "type": "string",
+      "enum": [
+        "auto",
+        "flat",
+        "legacy"
+      ],
+      "title": "Configuration Format",
+      "description": "Detect flat or legacy configuration automatically, or force one format."
+    },
+    "useBuiltin": {
+      "type": "boolean",
+      "default": true,
+      "title": "Use Bundled ESLint",
+      "description": "Use bundled ESLint v8 for legacy configuration and v10 for flat configuration when no project, module-path or global installation is available. The server restarts automatically after changing this setting."
+    }
+  },
+  "providedServices": {
+    "background-tips.provider": {
+      "versions": {
+        "1.0.0": "provideBackgroundTips"
       }
     }
   }

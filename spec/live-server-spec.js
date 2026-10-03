@@ -1,7 +1,7 @@
 const fs = require("fs");
 const os = require("os");
 const path = require("path");
-const main = require("../lib/main");
+let main;
 const { LiveLspClient, fileUri, position } = require("./helpers/live-lsp-client");
 
 const registerAdapter = () => {
@@ -50,7 +50,7 @@ describe("ide-eslint bundled server", () => {
 
   beforeEach(async () => {
     jasmine.useRealClock();
-    await lumine.packages.activatePackage("ide-eslint");
+    main = (await lumine.packages.activatePackage("ide-eslint")).mainModule;
     lumine.config.set("ide-eslint.nodePath", eslintNodePath);
     ({ adapter, disposable } = registerAdapter());
     rootPath = fs.mkdtempSync(path.join(os.tmpdir(), "ide-eslint-live-"));
@@ -194,6 +194,102 @@ describe("ide-eslint bundled server", () => {
       textDocument: { uri },
     });
     expect(closed.items).toEqual([]);
+  });
+
+  it("uses bundled ESLint v10 for flat config when no library is installed", async () => {
+    lumine.config.unset("ide-eslint.nodePath");
+    const uri = fileUri(path.join(rootPath, "fixture.js"));
+    await client.start();
+    client.open(uri, "javascript", "const value = 1\n");
+    const diagnostics = await client.request("textDocument/diagnostic", { textDocument: { uri } });
+    expect(diagnostics.items.some(({ code }) => code === "semi")).toBe(true);
+    expect(
+      client
+        .messages("window/logMessage")
+        .some(({ params }) => params.message.includes("eslint10")),
+    )
+      .withContext(
+        JSON.stringify({
+          launch: client.launch,
+          settings: adapter.getWorkspaceConfiguration("", uri),
+          nodePath: process.env.NODE_PATH,
+          messages: client.messages("window/logMessage"),
+        }),
+      )
+      .toBe(true);
+  });
+
+  it("detects legacy config and uses bundled ESLint v8 in the same server", async () => {
+    lumine.config.unset("ide-eslint.nodePath");
+    fs.rmSync(path.join(rootPath, "eslint.config.mjs"));
+    fs.writeFileSync(
+      path.join(rootPath, ".eslintrc.json"),
+      JSON.stringify({
+        parserOptions: { ecmaVersion: 2021 },
+        rules: { semi: ["error", "always"] },
+      }),
+    );
+    const uri = fileUri(path.join(rootPath, "fixture.js"));
+    expect(adapter.getWorkspaceConfiguration("", uri).useFlatConfig).toBe(false);
+    await client.start();
+    client.open(uri, "javascript", "const value = 1\n");
+    const diagnostics = await client
+      .request("textDocument/diagnostic", { textDocument: { uri } })
+      .catch((error) => {
+        throw new Error(
+          `${error.message}; ${JSON.stringify(client.messages("window/logMessage"))}`,
+        );
+      });
+    expect(diagnostics.items.some(({ code }) => code === "semi")).toBe(true);
+    expect(
+      client.messages("window/logMessage").some(({ params }) => params.message.includes("eslint8")),
+    ).toBe(true);
+  });
+
+  it("prefers a project library over the bundled fallback", async () => {
+    lumine.config.set("ide-eslint.nodePath", path.join(rootPath, "missing-module-directory"));
+    const moduleDirectory = path.join(rootPath, "node_modules");
+    fs.mkdirSync(moduleDirectory);
+    fs.mkdirSync(path.join(moduleDirectory, "eslint"));
+    fs.writeFileSync(
+      path.join(moduleDirectory, "eslint", "index.js"),
+      `module.exports = require(${JSON.stringify(require.resolve("eslint8"))});`,
+    );
+    const uri = fileUri(path.join(rootPath, "fixture.js"));
+    await client.start();
+    client.open(uri, "javascript", "const value = 1\n");
+    const diagnostics = await client.request("textDocument/diagnostic", { textDocument: { uri } });
+    expect(diagnostics.items.some(({ code }) => code === "semi")).toBe(true);
+    expect(
+      client
+        .messages("window/logMessage")
+        .some(({ params }) => params.message.includes(path.join(moduleDirectory, "eslint"))),
+    ).toBe(true);
+  });
+
+  it("keeps bundled engine fallback when launching a managed server copy", async () => {
+    lumine.config.unset("ide-eslint.nodePath");
+    const resolveServer = adapter.resolveServer;
+    adapter.resolveServer = (context) =>
+      resolveServer({
+        ...context,
+        managedServer: {
+          modulePath:
+            require.resolve("vscode-langservers-extracted/bin/vscode-eslint-language-server"),
+          version: "4.10.0",
+        },
+      });
+    const uri = fileUri(path.join(rootPath, "fixture.js"));
+    await client.start();
+    client.open(uri, "javascript", "const value = 1\n");
+    const diagnostics = await client.request("textDocument/diagnostic", { textDocument: { uri } });
+    expect(diagnostics.items.some(({ code }) => code === "semi")).toBe(true);
+    expect(client.launch.version).toBe("4.10.0");
+    expect(
+      client
+        .messages("window/logMessage")
+        .some(({ params }) => params.message.includes("eslint10")),
+    ).toBe(true);
   });
 
   it("validates every advertised language mode and applies live configuration changes", async () => {

@@ -2,7 +2,7 @@ const fs = require("fs");
 const os = require("os");
 const path = require("path");
 const { pathToFileURL } = require("url");
-const main = require("../lib/main");
+let main;
 const { resolveServer, managedServer } = require("../lib/server");
 
 const registerAdapter = (overrides = {}) => {
@@ -31,14 +31,15 @@ describe("ide-eslint server resolution", () => {
     const launch = await resolveServer("");
     expect(launch.command).toBe(process.execPath);
     expect(fs.existsSync(launch.args[0])).toBe(true);
-    expect(launch.args[1]).toBe("--stdio");
+    expect(launch.args[0]).toContain("server-launcher.js");
+    expect(launch.args[2]).toBe("--stdio");
     expect(launch.env.ELECTRON_RUN_AS_NODE).toBe("1");
   });
 
   it("prefers a managed install over the bundled server", async () => {
     const managed = { modulePath: "/managed/server.js", version: "9.9.9" };
     const launch = await resolveServer("", managed);
-    expect(launch.args[0]).toBe(managed.modulePath);
+    expect(launch.args[1]).toBe(managed.modulePath);
     // Reported in the session details, so which copy is running is visible.
     expect(launch.version).toBe("9.9.9");
     expect((await resolveServer(process.execPath, managed)).command).toBe(process.execPath);
@@ -58,7 +59,7 @@ describe("ide-eslint adapter", () => {
   let disposable;
 
   beforeEach(async () => {
-    await lumine.packages.activatePackage("ide-eslint");
+    main = (await lumine.packages.activatePackage("ide-eslint")).mainModule;
     ({ adapter, disposable } = registerAdapter());
   });
 
@@ -169,8 +170,12 @@ describe("ide-eslint adapter", () => {
     expect(adapter.getSettings().validate).toBe("on");
   });
 
-  it("declares only the executable setting as restart-required", () => {
-    expect(adapter.restartKeyPaths).toEqual(["ide-eslint.serverPath"]);
+  it("restarts when launch-time engine fallback policy changes", () => {
+    expect(adapter.restartKeyPaths).toEqual([
+      "ide-eslint.serverPath",
+      "ide-eslint.useBuiltin",
+      "ide-eslint.configurationMode",
+    ]);
   });
 
   it("describes every titled configuration setting", () => {
@@ -192,7 +197,7 @@ describe("ide-eslint protocol extensions", () => {
   let disposable;
 
   beforeEach(async () => {
-    await lumine.packages.activatePackage("ide-eslint");
+    main = (await lumine.packages.activatePackage("ide-eslint")).mainModule;
     ({ adapter, disposable } = registerAdapter());
   });
 
