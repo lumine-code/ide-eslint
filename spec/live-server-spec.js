@@ -273,11 +273,11 @@ describe("ide-eslint bundled server", () => {
     adapter.resolveServer = (context) =>
       resolveServer({
         ...context,
-        managedServer: {
+        getManagedServer: () => ({
           modulePath:
             require.resolve("vscode-langservers-extracted/bin/vscode-eslint-language-server"),
           version: "4.10.0",
-        },
+        }),
       });
     const uri = fileUri(path.join(rootPath, "fixture.js"));
     await client.start();
