@@ -146,7 +146,7 @@ describe("ide-eslint project scans", () => {
         .createSpy("createProjectDiagnostics")
         .and.returnValue(coordinator),
     };
-    const edge = main.consumeIdeClient(service);
+    const edge = main.consumeIde(service);
     expect(service.createProjectDiagnostics).toHaveBeenCalledWith("ide-eslint", delegate);
     expect(coordinator.setAllMessages).toHaveBeenCalledWith(messages, undefined);
     edge.dispose();

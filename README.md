@@ -2,7 +2,7 @@
 
 ESLint language-server adapter for JavaScript and TypeScript.
 
-Registers the ESLint server from [vscode-langservers-extracted](https://github.com/hrsh7th/vscode-langservers-extracted) with the `ide-client` package. It provides pull diagnostics, quick fixes, disable comments, rule-documentation links, fix-all commands, ESLint-powered formatting, and explicit project scans.
+Registers the ESLint server from [vscode-langservers-extracted](https://github.com/hrsh7th/vscode-langservers-extracted) with the `ide` package. It provides pull diagnostics, quick fixes, disable comments, rule-documentation links, fix-all commands, ESLint-powered formatting, and explicit project scans.
 
 ## Features
 
@@ -32,15 +32,15 @@ Choose **Configuration Format** to keep automatic detection or force flat or leg
 
 To install `ide-eslint` search for it in the Install pane of the Lumine settings, or run the command `lumine --install lumine-code/ide-eslint`.
 
-Install `ide-client` first.
+Install `ide` first.
 
 ## Usage
 
-Use **Packages > IDE ESLint > Lint Projects** (`ide-eslint:lint-projects`) to scan saved files in every project folder, or **Lint Selected** (`ide-eslint:lint-selected`) to scan files and folders selected in the tree view. Results appear in the linter project view. Scans require the `linter` package, use the same engine selection and options as the language server, and do not change files. The adapter restarts automatically after changing its configuration format or bundled fallback policy; IDE Client also offers a manual server restart.
+Use **Packages > IDE ESLint > Lint Projects** (`ide-eslint:lint-projects`) to scan saved files in every project folder, or **Lint Selected** (`ide-eslint:lint-selected`) to scan files and folders selected in the tree view. Results appear in the linter project view. Scans require the `linter` package, use the same engine selection and options as the language server, and do not change files. The adapter restarts automatically after changing its configuration format or bundled fallback policy; IDE also offers a manual server restart.
 
 ## Services
 
-- `ide-client`: consumed to register the ESLint adapter with the editor's language-server client.
+- `ide`: consumed to register the ESLint adapter with the editor's language-server client.
 - `linter.registry`: consumed to publish project scan results alongside live diagnostics.
 - `busy-signal`: consumed to show progress while project scans run.
 - `tree-view.selection`: consumed to obtain selected files and folders.
