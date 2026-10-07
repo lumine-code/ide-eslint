@@ -285,10 +285,10 @@ describe("ide-eslint scan engines", () => {
     fs.mkdirSync(path.join(globalPath, "eslint"), { recursive: true });
     fs.writeFileSync(path.join(globalPath, "eslint", "index.js"), "module.exports = {};\n");
     expect(await engineModule.resolveInstalled("eslint", globalPath, rootPath)).toBe(
-      path.join(rootPath, "node_modules", "eslint", "index.js"),
+      fs.realpathSync(path.join(rootPath, "node_modules", "eslint", "index.js")),
     );
     expect(await engineModule.resolveInstalled("eslint", globalPath, os.tmpdir())).toBe(
-      path.join(globalPath, "eslint", "index.js"),
+      fs.realpathSync(path.join(globalPath, "eslint", "index.js")),
     );
   });
 
