@@ -7,6 +7,26 @@ const { execFile } = require("child_process");
 describe("ide-eslint project scans", () => {
   let main, rootPath, scanner, delegate, registration, callback, task;
 
+  it("waits for the ignored-path snapshot even when no Git UI has loaded it", async () => {
+    lumine.config.set("core.excludeVcsIgnoredPaths", true);
+    let complete;
+    let ready = false;
+    const snapshot = new Promise((resolve) => {
+      complete = resolve;
+    });
+    const ignored = jasmine.createSpy("isPathIgnoredCached").and.callFake(() => ready);
+    spyOn(lumine.project, "repositoryForPath").and.resolveTo({
+      ensureStatusSnapshot: () => snapshot,
+      isPathIgnoredCached: ignored,
+    });
+    const result = scanner.isIgnored(path.join(rootPath, "one.js"));
+    await flushMicrotasks();
+    expect(ignored).not.toHaveBeenCalled();
+    ready = true;
+    complete();
+    expect(await result).toBe(true);
+  });
+
   beforeEach(async () => {
     main = (await lumine.packages.activatePackage("ide-eslint")).mainModule;
     rootPath = fs.mkdtempSync(path.join(os.tmpdir(), "ide-eslint-scan-"));
@@ -114,7 +134,10 @@ describe("ide-eslint project scans", () => {
     expect(await scanner.isIgnored(filePath)).toBe(true);
     lumine.config.unset("linter.ignoreGlob");
     lumine.config.set("core.excludeVcsIgnoredPaths", true);
-    spyOn(lumine.project, "repositoryForPath").and.resolveTo({ isPathIgnored: () => true });
+    spyOn(lumine.project, "repositoryForPath").and.resolveTo({
+      ensureStatusSnapshot: jasmine.createSpy("ensureStatusSnapshot").and.resolveTo(undefined),
+      isPathIgnoredCached: () => true,
+    });
     expect(await scanner.isIgnored(filePath)).toBe(true);
   });
 
