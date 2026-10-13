@@ -8,9 +8,13 @@
           "submenu": [
             {
               "label": "Lint Projects with ESLint",
-              "command": "ide-eslint:lint-projects"
+              "command": "ide-eslint:lint-projects",
+              "group": "project",
+              "order": 10
             }
-          ]
+          ],
+          "group": "diagnostics",
+          "order": 10
         }
       ]
     },
