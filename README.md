@@ -16,6 +16,8 @@ Registers the ESLint server from [vscode-langservers-extracted](https://github.c
 - **Protocol extensions**: handles the server's non-standard missing-config, missing-library, status, exit, output, and documentation messages.
 - **Project scans**: checks saved files across all project folders or selected tree-view files and folders in a background task, retaining results as files are opened and coordinating them with live server diagnostics.
 
+![ESLint identifies an unused variable using the project lint configuration.](.github/demo.png)
+
 ## Requirements
 
 The bundled ESLint engines support basic configurations without a separate installation. Install ESLint in each project when its configuration needs parsers or plugins:

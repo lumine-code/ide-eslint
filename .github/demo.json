@@ -1,0 +1,16 @@
+{
+  "title": "ide-eslint",
+  "description": "ESLint identifies an unused variable using the project lint configuration.",
+  "recordedOn": "2026-10-13",
+  "sourceRevision": "d83718c6a4c39d3c55312e5c0bece3b4ec642f82",
+  "mode": "normal",
+  "fontSettings": "default",
+  "images": [
+    {
+      "file": "demo.png",
+      "label": "ESLint identifies an unused variable using the project lint configuration.",
+      "width": 1100,
+      "height": 490
+    }
+  ]
+}
