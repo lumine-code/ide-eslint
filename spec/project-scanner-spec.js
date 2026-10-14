@@ -178,6 +178,45 @@ describe("ide-eslint project scans", () => {
     expect(main.scanMessages).toBe(messages);
   });
 
+  it("clears the delegate synchronously and starts reconciliation for the first explicit scan", () => {
+    const coordinator = {
+      setAllMessages: jasmine.createSpy("setAllMessages"),
+      dispose: jasmine.createSpy("dispose"),
+    };
+    const service = {
+      registerAdapter: () => ({ dispose() {} }),
+      createProjectDiagnostics: jasmine
+        .createSpy("createProjectDiagnostics")
+        .and.returnValue(coordinator),
+    };
+    const edge = main.consumeIde(service);
+    expect(service.createProjectDiagnostics).not.toHaveBeenCalled();
+    expect(delegate.setAllMessages).toHaveBeenCalledWith([], undefined);
+
+    main.publishScanMessages([], { showProjectView: true });
+    expect(service.createProjectDiagnostics).toHaveBeenCalledOnceWith("ide-eslint", delegate);
+    expect(coordinator.setAllMessages).toHaveBeenCalledWith([], { showProjectView: true });
+    main.publishScanMessages([]);
+    expect(service.createProjectDiagnostics).toHaveBeenCalledTimes(1);
+    expect(coordinator.setAllMessages.calls.mostRecent().args).toEqual([[], undefined]);
+    edge.dispose();
+    expect(coordinator.dispose).toHaveBeenCalledTimes(1);
+    expect(delegate.setAllMessages.calls.mostRecent().args).toEqual([[], undefined]);
+  });
+
+  it("does not resurrect a revoked IDE connection when a scan arrives later", () => {
+    const create = jasmine.createSpy("createProjectDiagnostics");
+    const edge = main.consumeIde({
+      registerAdapter: () => ({ dispose() {} }),
+      createProjectDiagnostics: create,
+    });
+    edge.dispose();
+    const messages = [{ excerpt: "late scan" }];
+    main.publishScanMessages(messages);
+    expect(create).not.toHaveBeenCalled();
+    expect(delegate.setAllMessages.calls.mostRecent().args[0]).toBe(messages);
+  });
+
   it("retains results when a file opens rather than deleting its scan bucket", () => {
     const register = jasmine
       .createSpy("register")
