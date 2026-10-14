@@ -1,16 +1,100 @@
 {
   "title": "ide-eslint",
   "description": "ESLint identifies an unused variable using the project lint configuration.",
-  "recordedOn": "2026-10-13",
-  "sourceRevision": "d83718c6a4c39d3c55312e5c0bece3b4ec642f82",
+  "recordedOn": "2026-10-14",
+  "sourceRevision": "802b152aab0d1b5095be4cff44c1ba6ac9b59359",
+  "themeSourceRevision": "7fbd047a87ecf1367c896b19ff270cdc28d319f7",
   "mode": "normal",
   "fontSettings": "default",
+  "scenario": "demo.js",
+  "recipeHash": "120d2136b847b2b2a457eb9e247f32da5acc209b3dd2e795a102b2e591c430e1",
+  "environment": {
+    "platform": "win32",
+    "arch": "x64",
+    "electron": "44.7.0",
+    "chrome": "152.0.7977.130",
+    "devicePixelRatio": 1,
+    "locale": "en-GB",
+    "fontFamily": "Fira Code, Menlo, DejaVu Sans Mono, Consolas, monospace",
+    "fontSize": 14,
+    "themes": ["one-day-syntax", "one-day-ui"]
+  },
+  "viewport": { "width": 1100, "height": 490 },
+  "cornerRadius": 10,
+  "sources": {
+    "editor": {
+      "revision": "8be8f86075ad93df038610d82b3ac6d99329957d",
+      "dirty": false,
+      "workingTreeHash": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+    },
+    "package": {
+      "revision": "802b152aab0d1b5095be4cff44c1ba6ac9b59359",
+      "dirty": false,
+      "workingTreeHash": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+    },
+    "ide-eslint": {
+      "revision": "802b152aab0d1b5095be4cff44c1ba6ac9b59359",
+      "dirty": false,
+      "workingTreeHash": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+    },
+    "documentation-view": {
+      "revision": "eedd6f69e19677399ddd9617858da255bb8f189c",
+      "dirty": false,
+      "workingTreeHash": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+    },
+    "hover": {
+      "revision": "4db1205d5c41405ba1d5c0d741eeaf3399e3693f",
+      "dirty": false,
+      "workingTreeHash": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+    },
+    "ide": {
+      "revision": "812c09829d25abb79f6292280d1eb54fc80b6c82",
+      "dirty": false,
+      "workingTreeHash": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+    },
+    "language-javascript": {
+      "revision": "ae2e6968e3a349fb4d09ce53e339a0f8cce903aa",
+      "dirty": false,
+      "workingTreeHash": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+    },
+    "linter": {
+      "revision": "adec0e9d64ffe64f9e041df825324efc0795601b",
+      "dirty": false,
+      "workingTreeHash": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+    },
+    "linter-panel": {
+      "revision": "52b4727794bf840757d2c6ec818329f954ecfb25",
+      "dirty": false,
+      "workingTreeHash": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+    },
+    "marker": {
+      "revision": "bb4fc8fec8c9d09fe59db9b0d70352ff33cde8f8",
+      "dirty": false,
+      "workingTreeHash": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+    },
+    "one-theme": {
+      "revision": "7fbd047a87ecf1367c896b19ff270cdc28d319f7",
+      "dirty": false,
+      "workingTreeHash": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+    }
+  },
+  "fixtures": [
+    {
+      "file": "ide-eslint/eslint.config.cjs",
+      "sha256": "e9517be8ca9c09d92b4a9c8bfd8209977c23129e08310595355654605c086fc0"
+    },
+    {
+      "file": "ide-eslint/signal.js",
+      "sha256": "c1f359f167f3912119b497bce73324a0e3d49393df167120aff6990b7869bdd7"
+    }
+  ],
   "images": [
     {
       "file": "demo.png",
       "label": "ESLint identifies an unused variable using the project lint configuration.",
       "width": 1100,
-      "height": 490
+      "height": 490,
+      "sha256": "94e773c0366074da80ca9e603d3ffee55e5126bdbd58402dd685020831daade7"
     }
   ]
 }
