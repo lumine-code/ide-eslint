@@ -24,8 +24,8 @@
         {
           "label": "IDE ESLint",
           "submenu": [
-            { "label": "Lint Projects", "command": "ide-eslint:lint-projects" },
-            { "label": "Lint Selected", "command": "ide-eslint:lint-selected" }
+            { "label": "Lint Project Files", "command": "ide-eslint:lint-projects" },
+            { "label": "Lint Tree Selection", "command": "ide-eslint:lint-selected" }
           ]
         }
       ]
