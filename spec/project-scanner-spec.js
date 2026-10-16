@@ -64,6 +64,7 @@ describe("ide-eslint project scans", () => {
     workspace.appendChild(tree);
     spyOn(scanner, "run");
     spyOn(scanner, "runSelected");
+    main.consumeTreeViewSelection({ getSelectionSnapshot: () => ({ count: 1 }) });
     lumine.commands.dispatch(workspace, "ide-eslint:lint-projects");
     lumine.commands.dispatch(tree, "ide-eslint:lint-selected");
     expect(scanner.run.calls.count()).toBe(1);
@@ -77,6 +78,7 @@ describe("ide-eslint project scans", () => {
     const inner = path.join(nested, "two.js");
     lumine.project.setPaths([rootPath, nested]);
     main.consumeTreeViewSelection({
+      getSelectionSnapshot: () => ({ count: [outer, inner, inner, "missing", os.tmpdir()].length }),
       selectedPaths: () => [outer, inner, inner, "missing", os.tmpdir()],
     });
     expect(scanner.getSelectedScanItems()).toEqual([

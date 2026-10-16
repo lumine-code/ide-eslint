@@ -63,7 +63,10 @@ describe("ESLint real project containment", () => {
       },
       dispose() {},
     }));
-    const selection = main.consumeTreeViewSelection({ selectedPaths: () => [file] });
+    const selection = main.consumeTreeViewSelection({
+      getSelectionSnapshot: () => ({ count: [file].length }),
+      selectedPaths: () => [file],
+    });
     const scanner = main.ensureScanner();
     const warning = spyOn(lumine.notifications, "addWarning").and.callThrough();
     lumine.commands.dispatch(lumine.workspace.getElement(), "ide-eslint:lint-selected");

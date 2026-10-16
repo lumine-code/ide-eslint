@@ -35,6 +35,7 @@ describe("ESLint tree selection connection ownership", () => {
   });
   function service(name) {
     return {
+      getSelectionSnapshot: () => ({ count: [path.join(root, name)].length }),
       selectedPaths: () => [path.join(root, name)],
       dispose: jasmine.createSpy("borrowed dispose"),
     };
