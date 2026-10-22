@@ -60,17 +60,17 @@
   "dependencies": {
     "vscode-langservers-extracted": "4.10.0",
     "eslint8": "npm:eslint@^8.57.1",
-    "eslint10": "npm:eslint@^10.11.0",
+    "eslint10": "npm:eslint@^10.13.0",
     "picomatch": "^4.0.7"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
-    "eslint": "^10.12.0",
+    "eslint": "^10.13.0",
     "eslint-config-prettier": "^10.1.8",
-    "eslint-plugin-n": "^18.4.1",
+    "eslint-plugin-n": "^18.5.0",
     "globals": "^17.13.0",
-    "prettier": "^3.9.9",
-    "vscode-jsonrpc": "^9.0.3"
+    "prettier": "^3.9.10",
+    "vscode-jsonrpc": "^10.0.0"
   },
   "configSchema": {
     "serverPath": {
