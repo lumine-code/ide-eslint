@@ -1,6 +1,7 @@
 const fs = require("node:fs");
 const os = require("node:os");
 const path = require("node:path");
+const { installProjectESLint } = require("./helpers/project-eslint");
 
 describe("ESLint real project containment", () => {
   let directory, root, file, previousPaths, main, engine;
@@ -27,13 +28,8 @@ describe("ESLint real project containment", () => {
     engine = require("../lib/engine");
     // Keep the real worker and engine while isolating this containment test
     // from global package-manager discovery and the user's installed ESLint.
-    const modulePath = path.join(directory, "modules", "eslint");
-    fs.mkdirSync(modulePath, { recursive: true });
-    fs.writeFileSync(
-      path.join(modulePath, "index.js"),
-      `module.exports = require(${JSON.stringify(require.resolve("eslint8"))});\n`,
-    );
-    lumine.config.set("ide-eslint.nodePath", path.dirname(modulePath));
+    installProjectESLint(root);
+    lumine.config.unset("ide-eslint.nodePath");
     lumine.config.set("ide-eslint.configurationMode", "auto");
     lumine.config.set("ide-eslint.useBuiltin", true);
     lumine.config.set("ide-eslint.workingDirectory", "auto");
@@ -52,9 +48,9 @@ describe("ESLint real project containment", () => {
       "nodePath",
     ])
       lumine.config.unset(`ide-eslint.${key}`);
-    fs.unlinkSync(path.join(directory, "modules", "eslint", "index.js"));
-    fs.rmdirSync(path.join(directory, "modules", "eslint"));
-    fs.rmdirSync(path.join(directory, "modules"));
+    fs.unlinkSync(path.join(root, "node_modules", "eslint", "index.js"));
+    fs.rmdirSync(path.join(root, "node_modules", "eslint"));
+    fs.rmdirSync(path.join(root, "node_modules"));
     for (const name of ["source.js", ".eslintrc.json"])
       fs.unlinkSync(path.join(root, "..config", name));
     fs.rmdirSync(path.join(root, "..config"));

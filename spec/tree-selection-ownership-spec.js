@@ -1,6 +1,7 @@
 const fs = require("node:fs");
 const os = require("node:os");
 const path = require("node:path");
+const { installProjectESLint } = require("./helpers/project-eslint");
 
 describe("ESLint tree selection connection ownership", () => {
   let main, scanner, root, previousPaths, hub, consumption, providers;
@@ -8,6 +9,7 @@ describe("ESLint tree selection connection ownership", () => {
     jasmine.useRealClock();
     main = (await lumine.packages.activatePackage("ide-eslint")).mainModule;
     root = fs.mkdtempSync(path.join(os.tmpdir(), "ide-eslint-tree-"));
+    installProjectESLint(root);
     fs.writeFileSync(path.join(root, "one.js"), "const unused = 1;\n");
     fs.writeFileSync(path.join(root, "two.js"), "const other = 2;\n");
     previousPaths = lumine.project.getPaths();
@@ -29,6 +31,9 @@ describe("ESLint tree selection connection ownership", () => {
       const target = path.join(root, file);
       if (fs.existsSync(target)) fs.unlinkSync(target);
     }
+    fs.unlinkSync(path.join(root, "node_modules", "eslint", "index.js"));
+    fs.rmdirSync(path.join(root, "node_modules", "eslint"));
+    fs.rmdirSync(path.join(root, "node_modules"));
     fs.rmdirSync(root);
     for (const name of ["configurationMode", "useBuiltin"])
       lumine.config.unset(`ide-eslint.${name}`);

@@ -30,6 +30,7 @@
     "ide"
   ],
   "scripts": {
+    "pretest": "npm ci --ignore-scripts --prefix spec/fixtures/legacy-project",
     "test": "lumine --test spec",
     "lint": "eslint . --max-warnings 0",
     "format": "prettier --write .",
@@ -59,7 +60,6 @@
   },
   "dependencies": {
     "vscode-langservers-extracted": "4.10.0",
-    "eslint8": "npm:eslint@^8.57.1",
     "eslint10": "npm:eslint@^10.13.0",
     "picomatch": "^4.0.7"
   },
@@ -291,7 +291,7 @@
       "type": "boolean",
       "default": true,
       "title": "Use Bundled ESLint",
-      "description": "Use bundled ESLint v8 for legacy configuration and v10 for flat configuration when no project, module-path or global installation is available. The server restarts automatically after changing this setting."
+      "description": "Use bundled ESLint v10 for flat configuration when no project, module-path or global installation is available. Legacy configuration requires a compatible ESLint installation. The server restarts automatically after changing this setting."
     }
   },
   "providedServices": {

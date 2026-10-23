@@ -8,7 +8,7 @@ Registers the ESLint server from [vscode-langservers-extracted](https://github.c
 
 - **Bundled language server**: ships an exact server version, with an optional custom executable path.
 - **Managed upgrade**: installs a newer server from npm when you want one, and removing it returns to the bundled copy.
-- **Project ESLint**: resolves the ESLint version and plugins installed by each project, with optional global package-manager and node-module paths; the bundled and managed servers fall back to bundled ESLint v8 or v10 when no installation is available.
+- **Project ESLint**: resolves the ESLint version and plugins installed by each project, including ESLint v8, with optional global package-manager and node-module paths; the bundled and managed servers fall back to bundled ESLint v10 for flat configuration when no installation is available.
 - **Modern and legacy configuration**: detects flat config and eslintrc automatically, with optional explicit format selection.
 - **Complete fix workflow**: supplies single-rule, same-rule, fix-all, disable-line, disable-file, and documentation actions.
 - **Formatting**: dynamically enables ESLint auto-fixes as the formatter for validated documents.
@@ -20,13 +20,13 @@ Registers the ESLint server from [vscode-langservers-extracted](https://github.c
 
 ## Requirements
 
-The bundled ESLint engines support basic configurations without a separate installation. Install ESLint in each project when its configuration needs parsers or plugins:
+The bundled ESLint v10 supports basic flat configurations without a separate installation. Install ESLint in each project when its configuration needs parsers or plugins:
 
 ```sh
 npm install --save-dev eslint
 ```
 
-If ESLint is installed elsewhere, set **Node Module Path** or select the global package manager used to install it. The explicit module path takes priority, followed by the project's installation, a global installation, and finally the bundled engine. Bundled ESLint v8 handles legacy eslintrc configuration; bundled v10 handles flat configuration.
+If ESLint is installed elsewhere, set **Node Module Path** or select the global package manager used to install it. The explicit module path takes priority, followed by the project's installation, a global installation, and finally the bundled engine for flat configuration. Legacy eslintrc projects need a compatible installation, such as ESLint v8 installed in the project with `npm install --save-dev eslint@8`. Both the language server and project scans continue to use that version.
 
 Choose **Configuration Format** to keep automatic detection or force flat or legacy configuration. Projects without ESLint configuration are skipped by scans. A custom server executable is responsible for its own library resolution.
 
@@ -47,6 +47,10 @@ Use **Packages > IDE ESLint > Lint Projects** (`ide-eslint:lint-projects`) to sc
 - `busy-signal`: consumed to show progress while project scans run.
 - `tree-view.selection`: consumed to obtain selected files and folders.
 - `background-tips.provider`: provided to explain project and selection scans in the empty workspace.
+
+## Testing
+
+Run `npm test` to install the isolated ESLint v8 test project and run the integration suite. When launching specs directly in the editor, run `npm run pretest` first. ESLint v8 is a test fixture dependency and is not bundled with the package.
 
 ## Contributing
 

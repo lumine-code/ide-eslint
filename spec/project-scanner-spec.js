@@ -3,6 +3,7 @@ const os = require("os");
 const path = require("path");
 const { Task } = require("lumine");
 const { execFile } = require("child_process");
+const { installProjectESLint } = require("./helpers/project-eslint");
 
 describe("ide-eslint project scans", () => {
   let main, rootPath, scanner, delegate, registration, callback, task;
@@ -272,16 +273,7 @@ describe("ide-eslint scan engines", () => {
       );
     });
 
-  const installProjectFixture = (rootPath, alias) => {
-    const modulePath = path.join(rootPath, "node_modules", "eslint");
-    fs.mkdirSync(modulePath, { recursive: true });
-    fs.writeFileSync(
-      path.join(modulePath, "index.js"),
-      `module.exports = require(${JSON.stringify(require.resolve(alias))});`,
-    );
-  };
-
-  it("scans flat config with v10 and legacy config with v8", async () => {
+  it("scans flat config with bundled v10 and legacy config with project v8", async () => {
     fs.writeFileSync(
       path.join(rootPath, "eslint.config.cjs"),
       'module.exports = [{ rules: { semi: ["error", "always"] } }];',
@@ -293,6 +285,7 @@ describe("ide-eslint scan engines", () => {
     ).toBe("semi");
     expect((await probe(rootPath, settings)).version).toMatch(/^10\./);
     fs.rmSync(path.join(rootPath, "eslint.config.cjs"));
+    installProjectESLint(rootPath);
     fs.writeFileSync(
       path.join(rootPath, ".eslintrc.json"),
       JSON.stringify({
@@ -308,7 +301,7 @@ describe("ide-eslint scan engines", () => {
 
   it("uses the project engine before bundled fallback and passes configured options", async () => {
     fs.writeFileSync(path.join(rootPath, "eslint.config.cjs"), "module.exports = [{}];");
-    installProjectFixture(rootPath, "eslint8");
+    installProjectESLint(rootPath);
     const result = await probe(rootPath, {
       ...settings,
       options: { overrideConfig: { rules: { semi: ["error", "always"] } } },
@@ -321,7 +314,7 @@ describe("ide-eslint scan engines", () => {
 
   it("uses an explicit module path before the project engine", async () => {
     fs.writeFileSync(path.join(rootPath, "eslint.config.cjs"), "module.exports = [{}];");
-    installProjectFixture(rootPath, "eslint8");
+    installProjectESLint(rootPath);
     const nodePath = path.dirname(path.dirname(require.resolve("eslint/package.json")));
     const result = await probe(rootPath, { ...settings, nodePath });
     expect(result.version).toMatch(/^10\./);
@@ -343,8 +336,19 @@ describe("ide-eslint scan engines", () => {
     ).toBeRejected();
   });
 
+  it("does not use the bundled flat-config engine for a legacy project without ESLint", async () => {
+    fs.writeFileSync(path.join(rootPath, ".eslintrc.json"), "{}");
+    const error = Object.assign(new Error("ESLint is not installed in the project"), {
+      code: "MODULE_NOT_FOUND",
+    });
+    const resolve = jasmine.createSpy("resolve").and.rejectWith(error);
+    await expectAsync(
+      engineModule.resolveWithFallback(resolve, "eslint", null, rootPath, undefined, settings),
+    ).toBeRejectedWith(error);
+  });
+
   it("resolves a physical project library before a controlled global installation", async () => {
-    installProjectFixture(rootPath, "eslint8");
+    installProjectESLint(rootPath);
     const globalPath = path.join(rootPath, "global");
     fs.mkdirSync(path.join(globalPath, "eslint"), { recursive: true });
     fs.writeFileSync(path.join(globalPath, "eslint", "index.js"), "module.exports = {};\n");
@@ -435,7 +439,14 @@ describe("ide-eslint scan engines", () => {
     );
     fs.writeFileSync(path.join(flat, "a.js"), "const value = 1\n");
     fs.writeFileSync(path.join(legacy, "b.js"), "const value = 1\n");
-    const report = await scan([{ projectPath: rootPath, targetPaths: [flat, legacy], settings }]);
+    installProjectESLint(legacy);
+    const report = await scan([
+      {
+        projectPath: rootPath,
+        targetPaths: [flat, legacy],
+        settings: { ...settings, workingDirectory: "auto" },
+      },
+    ]);
     expect(report.errors).toEqual([]);
     expect(
       report.results

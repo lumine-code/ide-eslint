@@ -81,6 +81,9 @@ jobs:
       - name: Install package dependencies
         working-directory: ide-eslint
         run: npm ci --ignore-scripts
+      - name: Install the legacy ESLint test project
+        working-directory: ide-eslint
+        run: npm run pretest
       - name: Install declared spec packages
         run: node lumine/script/install-spec-packages.js --package ide-eslint --home "$RUNNER_TEMP/lumine-spec-home" --github-env "$GITHUB_ENV"
       - name: Install editor dependencies

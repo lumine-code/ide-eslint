@@ -3,6 +3,7 @@ const os = require("os");
 const path = require("path");
 let main;
 const { LiveLspClient, fileUri, position } = require("./helpers/live-lsp-client");
+const { installProjectESLint } = require("./helpers/project-eslint");
 
 const registerAdapter = () => {
   let adapter;
@@ -219,8 +220,9 @@ describe("ide-eslint bundled server", () => {
       .toBe(true);
   });
 
-  it("detects legacy config and uses bundled ESLint v8 in the same server", async () => {
+  it("detects legacy config and uses ESLint v8 installed in the project", async () => {
     lumine.config.unset("ide-eslint.nodePath");
+    const modulePath = installProjectESLint(rootPath);
     fs.rmSync(path.join(rootPath, "eslint.config.mjs"));
     fs.writeFileSync(
       path.join(rootPath, ".eslintrc.json"),
@@ -242,19 +244,15 @@ describe("ide-eslint bundled server", () => {
       });
     expect(diagnostics.items.some(({ code }) => code === "semi")).toBe(true);
     expect(
-      client.messages("window/logMessage").some(({ params }) => params.message.includes("eslint8")),
+      client
+        .messages("window/logMessage")
+        .some(({ params }) => params.message.includes(modulePath)),
     ).toBe(true);
   });
 
   it("prefers a project library over the bundled fallback", async () => {
     lumine.config.set("ide-eslint.nodePath", path.join(rootPath, "missing-module-directory"));
-    const moduleDirectory = path.join(rootPath, "node_modules");
-    fs.mkdirSync(moduleDirectory);
-    fs.mkdirSync(path.join(moduleDirectory, "eslint"));
-    fs.writeFileSync(
-      path.join(moduleDirectory, "eslint", "index.js"),
-      `module.exports = require(${JSON.stringify(require.resolve("eslint8"))});`,
-    );
+    const modulePath = installProjectESLint(rootPath);
     const uri = fileUri(path.join(rootPath, "fixture.js"));
     await client.start();
     client.open(uri, "javascript", "const value = 1\n");
@@ -263,7 +261,7 @@ describe("ide-eslint bundled server", () => {
     expect(
       client
         .messages("window/logMessage")
-        .some(({ params }) => params.message.includes(path.join(moduleDirectory, "eslint"))),
+        .some(({ params }) => params.message.includes(modulePath)),
     ).toBe(true);
   });
 
