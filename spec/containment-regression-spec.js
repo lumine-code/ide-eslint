@@ -25,6 +25,15 @@ describe("ESLint real project containment", () => {
     lumine.project.setPaths([root]);
     main = (await lumine.packages.activatePackage("ide-eslint")).mainModule;
     engine = require("../lib/engine");
+    // Keep the real worker and engine while isolating this containment test
+    // from global package-manager discovery and the user's installed ESLint.
+    const modulePath = path.join(directory, "modules", "eslint");
+    fs.mkdirSync(modulePath, { recursive: true });
+    fs.writeFileSync(
+      path.join(modulePath, "index.js"),
+      `module.exports = require(${JSON.stringify(require.resolve("eslint8"))});\n`,
+    );
+    lumine.config.set("ide-eslint.nodePath", path.dirname(modulePath));
     lumine.config.set("ide-eslint.configurationMode", "auto");
     lumine.config.set("ide-eslint.useBuiltin", true);
     lumine.config.set("ide-eslint.workingDirectory", "auto");
@@ -35,8 +44,17 @@ describe("ESLint real project containment", () => {
   afterEach(async () => {
     await lumine.packages.deactivatePackage("ide-eslint");
     lumine.project.setPaths(previousPaths);
-    for (const key of ["configurationMode", "useBuiltin", "workingDirectory", "options"])
+    for (const key of [
+      "configurationMode",
+      "useBuiltin",
+      "workingDirectory",
+      "options",
+      "nodePath",
+    ])
       lumine.config.unset(`ide-eslint.${key}`);
+    fs.unlinkSync(path.join(directory, "modules", "eslint", "index.js"));
+    fs.rmdirSync(path.join(directory, "modules", "eslint"));
+    fs.rmdirSync(path.join(directory, "modules"));
     for (const name of ["source.js", ".eslintrc.json"])
       fs.unlinkSync(path.join(root, "..config", name));
     fs.rmdirSync(path.join(root, "..config"));
@@ -70,9 +88,11 @@ describe("ESLint real project containment", () => {
     const scanner = main.ensureScanner();
     const warning = spyOn(lumine.notifications, "addWarning").and.callThrough();
     lumine.commands.dispatch(lumine.workspace.getElement(), "ide-eslint:lint-selected");
+    expect(scanner.scanning).toBe(true);
     if (scanner.scanning)
       await conditionPromise(() => !scanner.scanning, "selected double-dot project scan");
     expect(warning).not.toHaveBeenCalledWith("ESLint selected scan skipped", jasmine.anything());
+    expect(warning).not.toHaveBeenCalledWith("ESLint project scan failed", jasmine.anything());
     expect(
       publications.some(
         (message) => message.location.file === file && message.excerpt.includes("no-unused-vars"),
