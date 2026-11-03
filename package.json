@@ -60,15 +60,15 @@
   },
   "dependencies": {
     "vscode-langservers-extracted": "4.10.0",
-    "eslint10": "npm:eslint@^10.13.0",
+    "eslint10": "npm:eslint@^10.14.0",
     "picomatch": "^4.0.7"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
-    "eslint": "^10.13.0",
+    "eslint": "^10.14.0",
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-n": "^18.5.0",
-    "globals": "^17.13.0",
+    "globals": "^17.14.0",
     "prettier": "^3.9.10",
     "vscode-jsonrpc": "^10.0.0"
   },
@@ -299,6 +299,17 @@
       "versions": {
         "1.0.0": "provideBackgroundTips"
       }
+    }
+  },
+  "overrides": {
+    "eslint@^10.14.0": {
+      "minimatch": "11.0.4"
+    },
+    "eslint10": {
+      "minimatch": "11.0.4"
+    },
+    "@eslint/config-array@0.23.5": {
+      "minimatch": "11.0.4"
     }
   }
 }
