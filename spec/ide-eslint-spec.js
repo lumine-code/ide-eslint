@@ -99,7 +99,7 @@ describe("ide-eslint adapter", () => {
     expect(adapter.settingsKeyPaths).toEqual(["ide-eslint"]);
   });
 
-  it("returns the complete compatibility settings requested under an empty section", () => {
+  it("returns the complete compatibility settings requested under an empty section", async () => {
     const rootPath = fs.mkdtempSync(path.join(os.tmpdir(), "ide-eslint-settings-"));
     const uri = pathToFileURL(path.join(rootPath, "fixture.js")).href;
     lumine.config.set("ide-eslint.nodePath", "vendor/modules");
@@ -110,7 +110,7 @@ describe("ide-eslint adapter", () => {
       { rule: "no-*", severity: "warn", fixability: "fixable" },
     ]);
 
-    const settings = adapter.getWorkspaceConfiguration("", uri);
+    const settings = await adapter.getWorkspaceConfiguration("", uri);
     expect(settings.validate).toBe("on");
     expect(settings.packageManager).toBe("npm");
     expect(settings.useESLintClass).toBe(true);
@@ -131,13 +131,36 @@ describe("ide-eslint adapter", () => {
       commentStyle: "line",
     });
     expect(settings.codeAction.showDocumentation.enable).toBe(true);
-    expect(adapter.getWorkspaceConfiguration("eslint", uri)).toEqual(settings);
+    expect(await adapter.getWorkspaceConfiguration("eslint", uri)).toEqual(settings);
     expect(adapter.getWorkspaceConfiguration("unknown", uri)).toBeUndefined();
     fs.rmSync(rootPath, { recursive: true, force: true });
   });
 
-  it("uses explicit null and complete nested objects for server-sensitive defaults", () => {
-    const settings = adapter.getSettings();
+  it("uses the session root for unscoped settings and reads new configuration on the next lookup", async () => {
+    const directory = await fs.promises.mkdtemp(path.join(os.tmpdir(), "ide-eslint-roots-"));
+    try {
+      const first = path.join(directory, "first");
+      const second = path.join(directory, "second");
+      await Promise.all([fs.promises.mkdir(first), fs.promises.mkdir(second)]);
+      await fs.promises.writeFile(path.join(second, ".eslintrc.json"), "{}");
+      spyOn(lumine.project, "getPaths").and.returnValue([first, second]);
+      const context = { rootPath: second };
+      const [startup, workspace] = await Promise.all([
+        adapter.getSettings(context),
+        adapter.getWorkspaceConfiguration("eslint", undefined, context),
+      ]);
+      expect(startup.workspaceFolder.uri).toBe(pathToFileURL(second).href);
+      expect(startup.useFlatConfig).toBeFalse();
+      expect(workspace).toEqual(startup);
+      await fs.promises.writeFile(path.join(second, "eslint.config.js"), "");
+      expect((await adapter.getSettings(context)).useFlatConfig).toBeTrue();
+    } finally {
+      await fs.promises.rm(directory, { recursive: true, force: true });
+    }
+  });
+
+  it("uses explicit null and complete nested objects for server-sensitive defaults", async () => {
+    const settings = await adapter.getSettings();
     expect(settings.nodePath).toBeNull();
     expect(settings.options).toEqual({});
     expect(settings.rulesCustomizations).toEqual([]);
@@ -145,17 +168,17 @@ describe("ide-eslint adapter", () => {
     expect(settings.problems).toEqual({ shortenToSingleLine: false });
   });
 
-  it("maps feature switches onto document-scoped server settings", () => {
+  it("maps feature switches onto document-scoped server settings", async () => {
     lumine.config.set("ide-eslint.features.diagnostics", false);
     lumine.config.set("ide-eslint.features.format", false);
     lumine.config.set("ide-eslint.features.codeActions", false);
     const uri = pathToFileURL(path.join(__dirname, "fixture.js")).href;
-    const settings = adapter.getWorkspaceConfiguration("", uri);
+    const settings = await adapter.getWorkspaceConfiguration("", uri);
     expect(settings.validate).toBe("off");
     expect(settings.format).toBe(false);
     expect(settings.codeAction.disableRuleComment.enable).toBe(false);
     expect(settings.codeAction.showDocumentation.enable).toBe(false);
-    expect(adapter.getSettings().validate).toBe("on");
+    expect((await adapter.getSettings()).validate).toBe("on");
     expect(Object.keys(require("../package.json").configSchema.features.properties)).toEqual([
       "diagnostics",
       "format",
@@ -163,17 +186,17 @@ describe("ide-eslint adapter", () => {
     ]);
   });
 
-  it("preserves grammar-scoped feature overrides", () => {
+  it("preserves grammar-scoped feature overrides", async () => {
     const jsUri = pathToFileURL(path.join(__dirname, "fixture.js")).href;
     const tsUri = pathToFileURL(path.join(__dirname, "fixture.ts")).href;
     lumine.config.set("ide-eslint.features.diagnostics", false);
     lumine.config.set("ide-eslint.features.diagnostics", true, {
       scopeSelector: ".source.ts",
     });
-    expect(adapter.getWorkspaceConfiguration("", jsUri).validate).toBe("off");
-    expect(adapter.getWorkspaceConfiguration("", tsUri).validate).toBe("on");
+    expect((await adapter.getWorkspaceConfiguration("", jsUri)).validate).toBe("off");
+    expect((await adapter.getWorkspaceConfiguration("", tsUri)).validate).toBe("on");
     // The unscoped startup payload must not globally turn the server off.
-    expect(adapter.getSettings().validate).toBe("on");
+    expect((await adapter.getSettings()).validate).toBe("on");
   });
 
   it("restarts when launch-time engine fallback policy changes", () => {

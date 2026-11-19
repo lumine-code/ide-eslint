@@ -57,14 +57,14 @@ describe("ESLint real project containment", () => {
     fs.rmdirSync(root);
     fs.rmdirSync(directory);
   });
-  it("accepts valid double-dot-prefixed segments while excluding actual parents and siblings", () => {
+  it("accepts valid double-dot-prefixed segments while excluding actual parents and siblings", async () => {
     expect(engine.containsPath(root, file)).toBe(true);
     expect(engine.containsPath(root, root)).toBe(true);
     expect(engine.containsPath(root, directory)).toBe(false);
     expect(engine.containsPath(root, path.join(directory, "project-sibling", "file.js"))).toBe(
       false,
     );
-    expect(engine.configurationFor(root, file, "auto", "auto")).toEqual({
+    expect(await engine.configurationFor(root, file, "auto", "auto")).toEqual({
       useFlatConfig: false,
       directory: path.dirname(file),
     });

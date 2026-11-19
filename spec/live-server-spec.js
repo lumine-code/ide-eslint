@@ -212,7 +212,7 @@ describe("ide-eslint bundled server", () => {
       .withContext(
         JSON.stringify({
           launch: client.launch,
-          settings: adapter.getWorkspaceConfiguration("", uri),
+          settings: await adapter.getWorkspaceConfiguration("", uri),
           nodePath: process.env.NODE_PATH,
           messages: client.messages("window/logMessage"),
         }),
@@ -232,7 +232,7 @@ describe("ide-eslint bundled server", () => {
       }),
     );
     const uri = fileUri(path.join(rootPath, "fixture.js"));
-    expect(adapter.getWorkspaceConfiguration("", uri).useFlatConfig).toBe(false);
+    expect((await adapter.getWorkspaceConfiguration("", uri)).useFlatConfig).toBe(false);
     await client.start();
     client.open(uri, "javascript", "const value = 1\n");
     const diagnostics = await client
@@ -317,7 +317,7 @@ describe("ide-eslint bundled server", () => {
       "formatter registration",
     );
     lumine.config.set("ide-eslint.features.format", false);
-    client.notify("workspace/didChangeConfiguration", { settings: adapter.getSettings() });
+    client.notify("workspace/didChangeConfiguration", { settings: await adapter.getSettings() });
     await client.waitFor(
       () => !client.registrations.some(({ method }) => method === "textDocument/formatting"),
       "formatter unregistration",
@@ -325,7 +325,7 @@ describe("ide-eslint bundled server", () => {
     await client.waitFor(() => client.diagnosticRefreshes > 0, "diagnostic refresh");
 
     lumine.config.set("ide-eslint.features.diagnostics", false);
-    client.notify("workspace/didChangeConfiguration", { settings: adapter.getSettings() });
+    client.notify("workspace/didChangeConfiguration", { settings: await adapter.getSettings() });
     const uri = fileUri(path.join(rootPath, "fixture.js"));
     const disabled = await client.request("textDocument/diagnostic", {
       textDocument: { uri },
