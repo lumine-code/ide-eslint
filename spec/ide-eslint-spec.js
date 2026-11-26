@@ -337,16 +337,17 @@ describe("ide-eslint protocol extensions", () => {
     expect(lumine.notifications.addError.calls.count()).toBe(1);
     const [title, options] = lumine.notifications.addError.calls.mostRecent().args;
     expect(title).toBe("ESLint Language Server is stopping unexpectedly");
-    expect(options.detail).toBe("Exit code: 0\n\nError: stack");
+    expect(options.detail).toBe("Exit code: 0");
+    expect(options.stack).toBe("Error: stack");
     expect(options.dismissable).toBe(true);
 
     adapter.handleServerNotification("eslint/exitCalled", [2, "plugin stack"], {
       session: { state: "starting" },
     });
     expect(lumine.notifications.addError.calls.count()).toBe(2);
-    expect(lumine.notifications.addError.calls.mostRecent().args[1].detail).toBe(
-      "Exit code: 2\n\nplugin stack",
-    );
+    const nextOptions = lumine.notifications.addError.calls.mostRecent().args[1];
+    expect(nextOptions.detail).toBe("Exit code: 2");
+    expect(nextOptions.stack).toBe("plugin stack");
   });
 
   it("ignores the server's own intercepted exits during orderly shutdown", () => {
